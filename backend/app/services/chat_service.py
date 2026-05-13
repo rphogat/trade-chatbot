@@ -40,7 +40,7 @@ class ChatService:
 
     async def create_session(self, title: Optional[str] = None) -> ChatSession:
         session_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone.utc)
 
         db_session = ChatSessionDB(
             id=session_id,
@@ -56,8 +56,8 @@ class ChatService:
         return ChatSession(
             id=session_id,
             title=title or "New Chat",
-            created_at=now,
-            updated_at=now,
+            created_at=now.isoformat(),
+            updated_at=now.isoformat(),
             message_count=0,
         )
 
@@ -150,7 +150,7 @@ class ChatService:
             ]
 
     async def send_message(self, session_id: str, content: str) -> ChatMessage:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(timezone.utc)
 
         async with async_session_factory() as db:
             count_result = await db.execute(
@@ -180,7 +180,7 @@ class ChatService:
                 session_id=session_id,
                 role=MessageRole.ASSISTANT.value,
                 content=assistant_content,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(timezone.utc),
                 message_order=msg_count + 1,
             )
             db.add(assistant_msg)
@@ -192,7 +192,7 @@ class ChatService:
             if session_row:
                 if msg_count == 0:
                     session_row.title = content[:50] + ("..." if len(content) > 50 else "")
-                session_row.updated_at = datetime.now(timezone.utc).isoformat()
+                session_row.updated_at = datetime.now(timezone.utc)
 
             await db.commit()
 
@@ -201,7 +201,7 @@ class ChatService:
             session_id=session_id,
             role=MessageRole.ASSISTANT,
             content=assistant_content,
-            timestamp=assistant_msg.timestamp,
+            timestamp=str(assistant_msg.timestamp),
         )
 
     async def _generate_response(self, history: list[ChatMessage]) -> str:
